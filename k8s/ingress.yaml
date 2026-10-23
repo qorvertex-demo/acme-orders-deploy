@@ -1,0 +1,37 @@
+# Public entry point for the order system. The backend Service lives in
+# orders-api.yaml; the image it runs is built from the acme-orders-api
+# repository, so this routing is the only place that records which repository
+# answers a public URL.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: acme-orders
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "30"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: orders.acme.internal
+      http:
+        paths:
+          - path: /api/v1/orders
+            pathType: Prefix
+            backend:
+              service:
+                name: orders-api
+                port:
+                  number: 4010
+          - path: /health
+            pathType: Exact
+            backend:
+              service:
+                name: orders-api
+                port:
+                  number: 4010
+  # Anything the rules above do not match still reaches the API, so leaving it
+  # out would understate what is publicly exposed.
+  defaultBackend:
+    service:
+      name: orders-api
+      port:
+        number: 4010

@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: migrate
+  annotations:
+    # Runs before the API rolls out.
+    argocd.argoproj.io/hook: PreSync
+spec:
+  backoffLimit: 2
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: migrate
+          image: ghcr.io/acme/acme-orders-schema:1.4.0
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: orders-db
+                  key: url

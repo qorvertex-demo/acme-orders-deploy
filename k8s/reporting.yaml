@@ -1,0 +1,23 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: reporting
+spec:
+  schedule: "0 6 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: reporting
+              image: ghcr.io/acme/acme-orders-reporting:1.4.0
+              env:
+                # Reaches the orders-api Service above, in-cluster.
+                - name: ORDERS_API_URL
+                  value: http://orders-api:4010
+                - name: DATABASE_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: orders-db
+                      key: url
